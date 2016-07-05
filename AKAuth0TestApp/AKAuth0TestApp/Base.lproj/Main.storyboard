@@ -18,15 +18,9 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" id="bol-YK-LuL">
-                                        <rect key="frame" x="0.0" y="0.0" width="250" height="150"/>
+                                        <rect key="frame" x="-1" y="0.0" width="250" height="92"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <subviews>
-                                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter Email" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" id="b6l-ND-dGx">
-                                                <rect key="frame" x="8" y="34" width="222" height="30"/>
-                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="emailAddress"/>
-                                            </textField>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Please enter your data" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="kEY-MX-JeS">
                                                 <rect key="frame" x="13" y="5" width="217" height="21"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -35,7 +29,7 @@
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="bcs-de-mgw">
-                                                <rect key="frame" x="79" y="110" width="93" height="30"/>
+                                                <rect key="frame" x="75" y="27" width="93" height="30"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <color key="backgroundColor" red="0.49803921569999998" green="0.49803921569999998" blue="0.49803921569999998" alpha="1" colorSpace="calibratedRGB"/>
                                                 <state key="normal" title="Login">
@@ -45,16 +39,17 @@
                                                     <action selector="clickLoginButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="FH8-ep-PBE"/>
                                                 </connections>
                                             </button>
-                                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter Password" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" id="do7-Zo-eGY">
-                                                <rect key="frame" x="10" y="72" width="222" height="30"/>
-                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" secureTextEntry="YES"/>
-                                            </textField>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1 step" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="KXp-Sa-j2g">
-                                                <rect key="frame" x="13" y="114" width="58" height="21"/>
+                                                <rect key="frame" x="8" y="31" width="58" height="21"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="CONNECTION" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="UqZ-nq-JPE">
+                                                <rect key="frame" x="8" y="65" width="234" height="21"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
@@ -62,7 +57,7 @@
                                         <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="calibratedRGB"/>
                                     </view>
                                     <view contentMode="scaleToFill" id="dmi-2f-XVJ">
-                                        <rect key="frame" x="0.0" y="152" width="250" height="102"/>
+                                        <rect key="frame" x="1" y="95" width="250" height="102"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Connection" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="saM-kL-m5G">
@@ -97,7 +92,7 @@
                                         <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="calibratedRGB"/>
                                     </view>
                                     <view contentMode="scaleToFill" id="bcB-LR-RSH">
-                                        <rect key="frame" x="-1" y="257" width="251" height="228"/>
+                                        <rect key="frame" x="0.0" y="200" width="251" height="228"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <subviews>
                                             <pickerView contentMode="scaleToFill" id="B0M-dF-DiJ">
@@ -151,7 +146,7 @@
                                         <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="calibratedRGB"/>
                                     </view>
                                     <view contentMode="scaleToFill" id="4yQ-BN-yWL">
-                                        <rect key="frame" x="0.0" y="487" width="251" height="228"/>
+                                        <rect key="frame" x="1" y="430" width="251" height="228"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <subviews>
                                             <pickerView contentMode="scaleToFill" id="ko9-An-a3W">
@@ -210,9 +205,8 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <outlet property="emailTextField" destination="b6l-ND-dGx" id="onF-77-mzq"/>
+                        <outlet property="connectionLabel" destination="UqZ-nq-JPE" id="X4U-Vg-RCH"/>
                         <outlet property="linkedAccountPickerView" destination="ko9-An-a3W" id="PEM-KD-ScT"/>
-                        <outlet property="passwordTextField" destination="do7-Zo-eGY" id="6VO-qT-hA8"/>
                         <outlet property="userEmail" destination="HI8-Zj-ATl" id="C6J-23-LKw"/>
                         <outlet property="userId" destination="CJW-xZ-IiB" id="KSp-3T-smb"/>
                         <outlet property="userName" destination="IqV-6d-diL" id="npl-M1-Npn"/>

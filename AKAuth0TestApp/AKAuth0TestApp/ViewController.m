@@ -11,13 +11,12 @@
 #import <Lock/Lock.h>
 
 //Please use your Auth0 APIv2 token from https://auth0.com/docs/api/management/v2/tokens
-static NSString *kAuth0APIv2Token = @"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJJdUFiSnZvZXpwZTFFWUM2ZVhRRUoyd0QwSm5MOE5IZSIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiLCJ1cGRhdGUiXX19LCJpYXQiOjE0Njc0NTc5NTAsImp0aSI6ImYwYmM4MTg4ODVmMjkxZDVjYTZlN2I0ZTM0MTRmN2MwIn0.NHagVjzpdsvtGlNaiFa5HneahioU5I-JnOWX7-VDRmA";
+//scopes : read:users, update:users, read:logs
+static NSString *kAuth0APIv2Token = @"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJJdUFiSnZvZXpwZTFFWUM2ZVhRRUoyd0QwSm5MOE5IZSIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiLCJ1cGRhdGUiXX0sImxvZ3MiOnsiYWN0aW9ucyI6WyJyZWFkIl19fSwiaWF0IjoxNDY3NzUwMjMwLCJqdGkiOiI2M2U0MDMyM2VmZWViYjMwMWM5ZGZmMjZjNTZjMzFiYiJ9.gEH1R601EKQcr0fKXBJe4-IbX8v7ayEu5msKr4b1TAk";
 
 
 //Please use your Auth0 Domain
 static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
-
-static NSString *kAuth0ConnectionType = @"Username-Password-Authentication";
 
 @interface ViewController ()
 
@@ -31,8 +30,7 @@ static NSString *kAuth0ConnectionType = @"Username-Password-Authentication";
 @property (strong, nonatomic) NSMutableArray *linkedUserList;
 @property (strong, nonatomic) A0UserIdentity *selectedLinkedUser;
 
-@property (weak, nonatomic) IBOutlet UITextField *emailTextField;
-@property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
+@property (weak, nonatomic) IBOutlet UILabel *connectionLabel;
 - (IBAction)clickLoginButton:(id)sender;
 @property (weak, nonatomic) IBOutlet UILabel *userName;
 @property (weak, nonatomic) IBOutlet UILabel *userId;
@@ -276,34 +274,56 @@ static NSString *kAuth0ConnectionType = @"Username-Password-Authentication";
 }
 
 - (IBAction)clickLoginButton:(id)sender {
-    if (self.emailTextField.text.length < 1) {
-        [self showMessage:@"You need to eneter email"];
-        return;
-    }
-    if (self.passwordTextField.text.length < 1) {
-        [self showMessage:@"You need to eneter password"];
-        return;
-    }
-    
-    NSString *email = self.emailTextField.text;
-    NSString *password = self.passwordTextField.text;
-    A0APIClient *client = [[A0Lock sharedLock] apiClient];
-    A0APIClientAuthenticationSuccess success = ^(A0UserProfile *profile, A0Token *token) {
+    A0LockViewController *controller = [[A0Lock sharedLock] newLockViewController];
+    controller.useWebView = NO;
+    controller.onAuthenticationBlock = ^(A0UserProfile *profile, A0Token *token) {
         self.token = token;
         self.profile = profile;
         [self createLinkedUserList:profile.identities];
+        self.connectionLabel.text = @"CONNECTION";
+        //some delay for getting correct logs
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self getLogForUser];
+        });
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
     };
-    A0APIClientError error = ^(NSError *error){
-        NSLog(@"Oops something went wrong: %@", error);
-        [self showMessage:[NSString stringWithFormat:@"%@", error]];
-    };
-    A0AuthParameters *params = [A0AuthParameters newDefaultParams];
-    params[A0ParameterConnection] = kAuth0ConnectionType; // Or your configured DB connection
-    [client loginWithUsername:email
-                     password:password
-                   parameters:params
-                      success:success
-                      failure:error];
+    
+    [self presentViewController:controller animated:YES completion:nil];
+
+}
+
+- (void)getLogForUser
+{
+    NSString *token = [NSString stringWithFormat:@"Bearer %@", kAuth0APIv2Token];
+    NSDictionary *headers = @{ @"Authorization": token};
+    
+    NSString *userId = [self.profile.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
+    NSString *urlString = [NSString stringWithFormat:@"%@/api/v2/users/%@/logs?include_totals=true&per_page=1", kAppRequestUrl, userId];
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:10.0];
+    [request setHTTPMethod:@"GET"];
+    [request setAllHTTPHeaderFields:headers];
+    
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
+                                                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                                    if (error) {
+                                                        NSLog(@"%@", error);
+                                                        [self showMessage:[NSString stringWithFormat:@"%@", error]];
+                                                    } else {
+                                                        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+                                                        NSLog(@"%@", dict);
+                                                        NSArray *logs = dict[@"logs"];//array with 1 element - the latest connection
+                                                        dispatch_async(dispatch_get_main_queue(), ^{
+                                                            self.connectionLabel.text = logs[0][@"connection"];
+                                                        });
+
+                                                    }
+                                                }];
+    [dataTask resume];
 }
 
 - (void)showMessage:(NSString *)message
