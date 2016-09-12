@@ -16,7 +16,7 @@ The main steps for linking accounts are:
 - Getting Auth0 APIv2 token as described [here](https://auth0.com/docs/api/management/v2/tokens)
 - Login to your iOS application
 - You may need to get list of available users for linking or you can see this list on [Dashboard](https://manage.auth0.com/#/users)
-- Perform a linking for selected user (user_id)
+- Perform a linking for the selected user (user_id)
 
 ## Important Snippets
 
@@ -33,28 +33,28 @@ controller.onAuthenticationBlock = ^(A0UserProfile *profile, A0Token *token) {
 ### Step 2: Get list of available users for linking.
 
 ```Objective-C
-    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", <API_V2_TOKEN>];
-    NSDictionary *headers = @{ @"Authorization": bearerToken };
-    
-    NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users?include_totals=true&include_fields=true&search_engine=v2", <AUTH0_DOMAIN>];
-    NSURL *url = [NSURL URLWithString:urlString];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                       timeoutInterval:10.0];
-    [request setHTTPMethod:@"GET"];
-    [request setAllHTTPHeaderFields:headers];
-    
-    NSURLSession *session = [NSURLSession sharedSession];
-    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
-                                                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                                    if (error) {
-                                                        NSLog(@"%@", error);
-                                                    } else {
-                                                        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
-                                                        NSLog(@"%@", dict);
-                                                    }
-                                                }];
-    [dataTask resume];
+NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", <API_V2_TOKEN>];
+NSDictionary *headers = @{ @"Authorization": bearerToken };
+
+NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users?include_totals=true&include_fields=true&search_engine=v2", <AUTH0_DOMAIN>];
+NSURL *url = [NSURL URLWithString:urlString];
+NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                   timeoutInterval:10.0];
+[request setHTTPMethod:@"GET"];
+[request setAllHTTPHeaderFields:headers];
+
+NSURLSession *session = [NSURLSession sharedSession];
+NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
+                                            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                                if (error) {
+                                                    NSLog(@"%@", error);
+                                                } else {
+                                                    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+                                                    NSLog(@"%@", dict);
+                                                }
+                                            }];
+[dataTask resume];
 ```
 
 ### Step 3: Step 3: Link a new user to current user account
