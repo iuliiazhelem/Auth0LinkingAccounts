@@ -2,9 +2,6 @@
 //  ViewController.m
 //  AKAuth0TestApp
 //
-//  Created by Iuliia Zhelem on 14.06.16.
-//  Copyright © 2016 Akvelon. All rights reserved.
-//
 
 #import "ViewController.h"
 #import "AppDelegate.h"
@@ -12,11 +9,9 @@
 
 //Please use your Auth0 APIv2 token from https://auth0.com/docs/api/management/v2/tokens
 //scopes : read:users, update:users, read:logs
-static NSString *kAuth0APIv2Token = @"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJJdUFiSnZvZXpwZTFFWUM2ZVhRRUoyd0QwSm5MOE5IZSIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInJlYWQiLCJ1cGRhdGUiXX0sImxvZ3MiOnsiYWN0aW9ucyI6WyJyZWFkIl19fSwiaWF0IjoxNDY3NzUwMjMwLCJqdGkiOiI2M2U0MDMyM2VmZWViYjMwMWM5ZGZmMjZjNTZjMzFiYiJ9.gEH1R601EKQcr0fKXBJe4-IbX8v7ayEu5msKr4b1TAk";
+static NSString *kAuth0APIv2Token = @"Auth0APIv2Token";
 
-
-//Please use your Auth0 Domain
-static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
+static NSString *kAuth0Domain = @"Auth0Domain";
 
 @interface ViewController ()
 
@@ -60,21 +55,43 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
     self.linkedPickerData = [NSMutableArray arrayWithCapacity:10];
 }
 
-- (void)setProfile:(A0UserProfile *)profile {
-    _profile = profile;
+// Step 1: Login to Auth0
+- (IBAction)clickLoginButton:(id)sender {
+    A0LockViewController *controller = [[A0Lock sharedLock] newLockViewController];
+    controller.useWebView = NO;
+    controller.onAuthenticationBlock = ^(A0UserProfile *profile, A0Token *token) {
+        self.token = token;
+        self.profile = profile;
+        [self createLinkedUserList:profile.identities];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.connectionLabel.text = @"CONNECTION";
+        });
+        //some delay for getting correct logs
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self getLogForUser];
+        });
+        
+        [self dismissViewControllerAnimated:YES completion:nil];
+    };
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.userName.text = profile.name;
-        self.userId.text = profile.userId;
-        self.userEmail.text = profile.email;
-    });
+    [self presentViewController:controller animated:YES completion:nil];
+    
 }
 
-- (IBAction)clickGetUserList:(id)sender {
-    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", kAuth0APIv2Token];
-    NSDictionary *headers = @{ @"Authorization": bearerToken };
+// Get log for current user to determine what kind of connection was used for login to Auth0
+- (void)getLogForUser {
+    // GET request
+    // We need url "https://<Auth0 Domain>/api/v2/users/<UserId>/logs?include_totals=true&per_page=1"
+    // and header "Authorization : Bearer <kAuth0APIv2Token>"
     
-    NSString *urlString = [NSString stringWithFormat:@"%@/api/v2/users?include_totals=true&include_fields=true&search_engine=v2", kAppRequestUrl];
+    NSString *apiToken = [NSBundle mainBundle].infoDictionary[kAuth0APIv2Token];
+    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", apiToken];
+    NSDictionary *headers = @{ @"Authorization": bearerToken};
+    
+    NSString *userId = [self.profile.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
+    
+    NSString *domain = [NSBundle mainBundle].infoDictionary[kAuth0Domain];
+    NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users/%@/logs?include_totals=true&per_page=1", domain, userId];
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                                                            cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -89,8 +106,44 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
                                                         NSLog(@"%@", error);
                                                         [self showMessage:[NSString stringWithFormat:@"%@", error]];
                                                     } else {
-                                                        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
-                                                        NSLog(@"%@", httpResponse);
+                                                        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+                                                        NSLog(@"%@", dict);
+                                                        NSArray *logs = dict[@"logs"];//array with 1 element - the latest connection
+                                                        dispatch_async(dispatch_get_main_queue(), ^{
+                                                            self.connectionLabel.text = logs[0][@"connection"];
+                                                        });
+                                                        
+                                                    }
+                                                }];
+    [dataTask resume];
+}
+
+// Step 2: Get list of available users for linking
+- (IBAction)clickGetUserList:(id)sender {
+    // GET request
+    // We need url "https://<Auth0 Domain>/api/v2/users?include_totals=true&include_fields=true&search_engine=v2"
+    // and header "Authorization : Bearer <kAuth0APIv2Token>"
+    
+    NSString *apiToken = [NSBundle mainBundle].infoDictionary[kAuth0APIv2Token];
+    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", apiToken];
+    NSDictionary *headers = @{ @"Authorization": bearerToken };
+    
+    NSString *domain = [NSBundle mainBundle].infoDictionary[kAuth0Domain];
+    NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users?include_totals=true&include_fields=true&search_engine=v2", domain];
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:10.0];
+    [request setHTTPMethod:@"GET"];
+    [request setAllHTTPHeaderFields:headers];
+    
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
+                                                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                                    if (error) {
+                                                        NSLog(@"%@", error);
+                                                        [self showMessage:[NSString stringWithFormat:@"%@", error]];
+                                                    } else {
                                                         NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
                                                         NSLog(@"%@", dict);
                                                         [self createUserList:dict];
@@ -99,74 +152,16 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
     [dataTask resume];
 }
 
-- (void)createUserList:(NSDictionary *)userList {
-    
-    self.userList = [NSMutableArray arrayWithArray:userList[@"users"]];
-    [self.pickerData removeAllObjects];
-    for (NSDictionary *userDict in self.userList) {
-        A0UserProfile *user = [[A0UserProfile alloc] initWithDictionary:userDict];
-        NSString *name = user.name;
-        if (name) {
-            [self.pickerData addObject:name];
-        } else {
-            NSLog(@"NUL : %@", user);
-            [self.pickerData addObject:user.userId];
-        }
-        
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.usersPickerView reloadAllComponents];
-    });
-}
-
-- (void)fetchUserProfile {
-    if (!self.token) {
-        [self showMessage:@"Please login first"];
-        return;
-    }
-    
-    A0APIClient *client = [[A0Lock sharedLock] apiClient];
-    [client fetchUserProfileWithIdToken:self.token.idToken success:^(A0UserProfile * _Nonnull profile) {
-        self.profile = profile;
-        [self createLinkedUserList:profile.identities];
-    } failure:^(NSError * _Nonnull error) {
-        NSLog(@"Oops something went wrong: %@", error);
-        [self showMessage:[NSString stringWithFormat:@"%@", error]];
-    }];
-}
-
-- (void)createLinkedUserList:(NSArray *)userList {
-    
-    self.linkedUserList = [NSMutableArray arrayWithArray:userList];
-    [self.linkedPickerData removeAllObjects];
-    for (A0UserIdentity *userIdentity in self.linkedUserList) {
-       if (userIdentity.profileData) {
-           NSString *name = userIdentity.profileData[@"name"];
-           NSString *username = userIdentity.profileData[@"username"];
-           if (name) {
-               [self.linkedPickerData addObject:name];
-           } else if (username) {
-               [self.linkedPickerData addObject:username];
-           }
-           
-        } else {
-            NSLog(@"WIHTOUT NAME : %@", userIdentity);
-            [self.linkedPickerData addObject:userIdentity.userId];
-        }
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.linkedAccountPickerView reloadAllComponents];
-    });
-}
-
-
+// Step 3: Link a new user to current user account
 - (IBAction)clickLinkButton:(id)sender {
-   
-    NSString *token = [NSString stringWithFormat:@"Bearer %@", kAuth0APIv2Token];
+    // POST request
+    // We need url "https://<Auth0 Domain>/api/v2/users/<CurrentUserId>/identities"
+    // and header "Authorization : Bearer <kAuth0APIv2Token>"
+    
+    NSString *apiToken = [NSBundle mainBundle].infoDictionary[kAuth0APIv2Token];
+    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", apiToken];
     NSDictionary *headers = @{ @"content-type": @"application/json",
-                               @"Authorization": token};
+                               @"Authorization": bearerToken};
     
     if (!self.selectedUser && !self.userList.count) {
         return;
@@ -188,12 +183,9 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
                                                            options:0
                                                              error:&error];
     
-    NSString *strBody = [[NSString alloc] initWithData:dataFromDict encoding:NSUTF8StringEncoding];
-    NSLog(@"BODY : %@", strBody);
-    
-    
     userId = [self.profile.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
-    NSString *urlString = [NSString stringWithFormat:@"%@/api/v2/users/%@/identities", kAppRequestUrl, userId];
+    NSString *domain = [NSBundle mainBundle].infoDictionary[kAuth0Domain];
+    NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users/%@/identities", domain, userId];
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                                                            cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -221,12 +213,39 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
                                                     }
                                                 }];
     [dataTask resume];
-    
 }
 
+// Step 4: Get list of linked accounts
+- (IBAction)clickLinkedAccounts:(id)sender {
+    [self fetchUserProfile];
+}
+
+// Fetch the current user prfile with idetnities (linked accounts)
+- (void)fetchUserProfile {
+    if (!self.token) {
+        [self showMessage:@"Please login first"];
+        return;
+    }
+    
+    A0APIClient *client = [[A0Lock sharedLock] apiClient];
+    [client fetchUserProfileWithIdToken:self.token.idToken success:^(A0UserProfile * _Nonnull profile) {
+        self.profile = profile;
+        [self createLinkedUserList:profile.identities];
+    } failure:^(NSError * _Nonnull error) {
+        NSLog(@"Oops something went wrong: %@", error);
+        [self showMessage:[NSString stringWithFormat:@"%@", error]];
+    }];
+}
+
+// Step 5: Unlink selected linked user
 - (IBAction)clickUnlinkButton:(id)sender {
-    NSString *token = [NSString stringWithFormat:@"Bearer %@", kAuth0APIv2Token];
-    NSDictionary *headers = @{ @"Authorization": token};
+    // DELETE request
+    // We need url "https://<Auth0 Domain>/api/v2/users/<CurrectUserId>/identities/<ProviderName>/<LinkedUserId>"
+    // and header "Authorization : Bearer <kAuth0APIv2Token>"
+    
+    NSString *apiToken = [NSBundle mainBundle].infoDictionary[kAuth0APIv2Token];
+    NSString *bearerToken = [NSString stringWithFormat:@"Bearer %@", apiToken];
+    NSDictionary *headers = @{ @"Authorization": bearerToken};
     
     if (!self.selectedLinkedUser && !self.linkedUserList.count) {
         return;
@@ -240,7 +259,9 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
     NSString *provider = userIdentity.provider;
     NSString *linkedUserId = [userIdentity.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
     NSString *userId = [self.profile.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
-    NSString *urlString = [NSString stringWithFormat:@"%@/api/v2/users/%@/identities/%@/%@", kAppRequestUrl, userId, provider, linkedUserId];
+    
+    NSString *domain = [NSBundle mainBundle].infoDictionary[kAuth0Domain];
+    NSString *urlString = [NSString stringWithFormat:@"https://%@/api/v2/users/%@/identities/%@/%@", domain, userId, provider, linkedUserId];
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                                                            cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -269,65 +290,69 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
     [dataTask resume];
 }
 
-- (IBAction)clickLinkedAccounts:(id)sender {
-    [self fetchUserProfile];
+// UIPickerViewDataSource delegate methods
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+    return 1;
 }
 
-- (IBAction)clickLoginButton:(id)sender {
-    A0LockViewController *controller = [[A0Lock sharedLock] newLockViewController];
-    controller.useWebView = NO;
-    controller.onAuthenticationBlock = ^(A0UserProfile *profile, A0Token *token) {
-        self.token = token;
-        self.profile = profile;
-        [self createLinkedUserList:profile.identities];
-        self.connectionLabel.text = @"CONNECTION";
-        //some delay for getting correct logs
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self getLogForUser];
-        });
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
+    if (pickerView == self.usersPickerView) {
+        return self.pickerData.count;
+    } else if (pickerView == self.linkedAccountPickerView) {
+        return self.linkedPickerData.count;
+    }
+    return 0;
+}
+
+- (NSString*)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    if (pickerView == self.usersPickerView) {
+        return self.pickerData[row];
+    } else if (pickerView == self.linkedAccountPickerView) {
+        return self.linkedPickerData[row];
+    }
+    return 0;
+}
+
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    if (pickerView == self.usersPickerView) {
+        self.selectedUser = [[A0UserProfile alloc] initWithDictionary:self.userList[row]];
+    } else if (pickerView == self.linkedAccountPickerView) {
+        self.selectedLinkedUser = self.linkedUserList[row];
+    }
+}
+
+// Internal methods
+- (void)setProfile:(A0UserProfile *)profile {
+    _profile = profile;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.userName.text = profile.name;
+        self.userId.text = profile.userId;
+        self.userEmail.text = profile.email;
+    });
+}
+
+- (void)createUserList:(NSDictionary *)userList {
+    self.userList = [NSMutableArray arrayWithArray:userList[@"users"]];
+    [self.pickerData removeAllObjects];
+    for (NSDictionary *userDict in self.userList) {
+        A0UserProfile *user = [[A0UserProfile alloc] initWithDictionary:userDict];
+        NSString *name = user.name;
+        if (name) {
+            [self.pickerData addObject:name];
+        } else {
+            NSLog(@"NUL : %@", user);
+            [self.pickerData addObject:user.userId];
+        }
         
-        [self dismissViewControllerAnimated:YES completion:nil];
-    };
+    }
     
-    [self presentViewController:controller animated:YES completion:nil];
-
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.usersPickerView reloadAllComponents];
+    });
 }
 
-- (void)getLogForUser
-{
-    NSString *token = [NSString stringWithFormat:@"Bearer %@", kAuth0APIv2Token];
-    NSDictionary *headers = @{ @"Authorization": token};
-    
-    NSString *userId = [self.profile.userId stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
-    NSString *urlString = [NSString stringWithFormat:@"%@/api/v2/users/%@/logs?include_totals=true&per_page=1", kAppRequestUrl, userId];
-    NSURL *url = [NSURL URLWithString:urlString];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                       timeoutInterval:10.0];
-    [request setHTTPMethod:@"GET"];
-    [request setAllHTTPHeaderFields:headers];
-    
-    NSURLSession *session = [NSURLSession sharedSession];
-    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
-                                                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                                    if (error) {
-                                                        NSLog(@"%@", error);
-                                                        [self showMessage:[NSString stringWithFormat:@"%@", error]];
-                                                    } else {
-                                                        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
-                                                        NSLog(@"%@", dict);
-                                                        NSArray *logs = dict[@"logs"];//array with 1 element - the latest connection
-                                                        dispatch_async(dispatch_get_main_queue(), ^{
-                                                            self.connectionLabel.text = logs[0][@"connection"];
-                                                        });
-
-                                                    }
-                                                }];
-    [dataTask resume];
-}
-
-- (void)showMessage:(NSString *)message
-{
+- (void)showMessage:(NSString *)message {
     dispatch_async(dispatch_get_main_queue(), ^{
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Auth0" message:message preferredStyle:UIAlertControllerStyleAlert];
         
@@ -338,41 +363,28 @@ static NSString *kAppRequestUrl = @"https://juliazhelem.eu.auth0.com";
     });
 }
 
-// The number of columns of data
-- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView
-{
-    return 1;
-}
-
-// The number of rows of data
-- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component
-{
-    if (pickerView == self.usersPickerView) {
-        return self.pickerData.count;
-    } else if (pickerView == self.linkedAccountPickerView) {
-        return self.linkedPickerData.count;
+- (void)createLinkedUserList:(NSArray *)userList {
+    self.linkedUserList = [NSMutableArray arrayWithArray:userList];
+    [self.linkedPickerData removeAllObjects];
+    for (A0UserIdentity *userIdentity in self.linkedUserList) {
+        if (userIdentity.profileData) {
+            NSString *name = userIdentity.profileData[@"name"];
+            NSString *username = userIdentity.profileData[@"username"];
+            if (name) {
+                [self.linkedPickerData addObject:name];
+            } else if (username) {
+                [self.linkedPickerData addObject:username];
+            }
+            
+        } else {
+            NSLog(@"WIHTOUT NAME : %@", userIdentity);
+            [self.linkedPickerData addObject:userIdentity.userId];
+        }
     }
-    return 0;
-}
-
-// The data to return for the row and component (column) that's being passed in
-- (NSString*)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
-{
-    if (pickerView == self.usersPickerView) {
-        return self.pickerData[row];
-    } else if (pickerView == self.linkedAccountPickerView) {
-        return self.linkedPickerData[row];
-    }
-    return 0;
-}
-
-- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
-{
-    if (pickerView == self.usersPickerView) {
-        self.selectedUser = [[A0UserProfile alloc] initWithDictionary:self.userList[row]];
-    } else if (pickerView == self.linkedAccountPickerView) {
-        self.selectedLinkedUser = self.linkedUserList[row];
-    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.linkedAccountPickerView reloadAllComponents];
+    });
 }
 
 @end

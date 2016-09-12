@@ -28,23 +28,12 @@
 		22AF2B9A1D1044C000C97251 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFrameworksBuildPhase section */
-		22AF2B831D1044C000C97251 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
 /* Begin PBXGroup section */
 		22AF2B7D1D1044C000C97251 = {
 			isa = PBXGroup;
 			children = (
 				22AF2B881D1044C000C97251 /* AKAuth0TestApp */,
 				22AF2B871D1044C000C97251 /* Products */,
-				818EDD5D71C53914CD1FCF28 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -80,13 +69,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		818EDD5D71C53914CD1FCF28 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -94,12 +76,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 22AF2B9D1D1044C000C97251 /* Build configuration list for PBXNativeTarget "AKAuth0TestApp" */;
 			buildPhases = (
-				2792497F54A71210FA09CF4F /* Check Pods Manifest.lock */,
 				22AF2B821D1044C000C97251 /* Sources */,
-				22AF2B831D1044C000C97251 /* Frameworks */,
 				22AF2B841D1044C000C97251 /* Resources */,
-				8F1AA946DF4ED4DA50385D48 /* Embed Pods Frameworks */,
-				04F2D3CC76D560259F61FFDA /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -154,54 +132,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		04F2D3CC76D560259F61FFDA /* Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AKAuth0TestApp/Pods-AKAuth0TestApp-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		2792497F54A71210FA09CF4F /* Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Check Pods Manifest.lock";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		8F1AA946DF4ED4DA50385D48 /* Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AKAuth0TestApp/Pods-AKAuth0TestApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		22AF2B821D1044C000C97251 /* Sources */ = {
@@ -324,7 +254,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = AKAuth0TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.akvelon.AKAuth0TestApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.auth0.AKAuth0TestApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -335,7 +265,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = AKAuth0TestApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.akvelon.AKAuth0TestApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.auth0.AKAuth0TestApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

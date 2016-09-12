@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>Auth0ClientId</key>
-	<string>pj1N9W644zMIyI62UZqNIFnYCdsnwt9V</string>
+	<string>{CLIENT_ID}</string>
 	<key>Auth0Domain</key>
-	<string>juliazhelem.eu.auth0.com</string>
+	<string>{DOMAIN}</string>
+	<key>Auth0APIv2Token</key>
+	<string>{API_V2_TOKEN}</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -31,7 +33,7 @@
 			<string>auth0</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>a0pj1N9W644zMIyI62UZqNIFnYCdsnwt9V</string>
+				<string>a0{CLIENT_ID}</string>
 			</array>
 		</dict>
 	</array>
